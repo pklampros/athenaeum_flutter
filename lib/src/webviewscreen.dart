@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String serverAddress;

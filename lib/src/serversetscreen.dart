@@ -1,10 +1,11 @@
 import 'package:athenaeum_flutter/src/webviewscreen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ServerSetPage extends StatelessWidget {
   final String? serverAddress;
   const ServerSetPage({super.key, this.serverAddress});
+
+  static const routeName = '/server_set';
 
   @override
   Widget build(BuildContext context) {
