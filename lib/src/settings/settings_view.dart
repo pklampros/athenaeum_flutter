@@ -5,6 +5,8 @@ import 'package:settings_ui/settings_ui.dart';
 
 import 'settings_controller.dart';
 
+import '../constants.dart' as constants;
+
 /// Displays the various settings that can be customized by the user.
 ///
 /// When a user changes a setting, the SettingsController is updated and
@@ -48,16 +50,11 @@ class SettingsView extends StatelessWidget {
                 final storage =
                     FlutterSecureStorage(aOptions: getAndroidOptions());
 
-                await storage.write(key: 'nc-user', value: serverData['user']);
                 await storage.write(
-                    key: 'nc-password', value: serverData['password']);
-
-                // final String? server =
-                //     await storage.read(key: "athnm-nc-server");
-
-                // final String? user = await storage.read(key: "athnm-nc-user");
-                // final String? password =
-                //     await storage.read(key: "athnm-nc-password");
+                    key: constants.storeUsernameKey, value: serverData['user']);
+                await storage.write(
+                    key: constants.storePasswordKey,
+                    value: serverData['password']);
               },
             ),
             SettingsTile.navigation(

@@ -9,52 +9,18 @@ import '../settings/settings_view.dart';
 import 'sample_item.dart';
 import 'sample_item_details_view.dart';
 
+import '../settings/settings_controller.dart';
+
+import '../constants.dart' as constants;
+
 /// Displays a list of SampleItems.
 class SampleItemListView extends StatelessWidget {
-  List<SampleItem> parseItems(String responseBody) {
-    final parsed = (jsonDecode(responseBody)['items'] as List)
-        .cast<Map<String, dynamic>>();
-
-    return parsed.map<SampleItem>((json) => SampleItem.fromJson(json)).toList();
-  }
-
-  Future<List<SampleItem>> fetchItems() async {
-    // Store username and password in encrypted settings
-    AndroidOptions getAndroidOptions() => const AndroidOptions(
-          encryptedSharedPreferences: true,
-        );
-    final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
-
-    final String server = "http://10.0.2.2:8081";
-    final String? user = await storage.read(key: "nc-user");
-    final String? password = await storage.read(key: "nc-password");
-    String basicAuth = base64.encode(utf8.encode('$user:$password'));
-
-    try {
-      final response = await get(
-          Uri.parse('$server/apps/athenaeum/api/0.1/items'),
-          headers: <String, String>{'authorization': 'Basic $basicAuth'});
-      if (response.statusCode != 200) {
-        throw HttpException('${response.statusCode}');
-      }
-      return parseItems(response.body);
-    } on SocketException {
-      return Future.error("No Internet connection");
-    } on HttpException catch (e) {
-      return Future.error("Failed to fetch items (${e.message})");
-    } on FormatException {
-      return Future.error("Bad response format");
-    }
-  }
-
-  SampleItemListView({
-    super.key,
-    this.items = const [],
-  });
+  SampleItemListView(
+      {super.key, this.items = const [], required this.controller});
 
   static const routeName = '/';
-
   List<SampleItem> items;
+  final SettingsController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +55,9 @@ class SampleItemListView extends StatelessWidget {
           // building all Widgets up front, the ListView.builder constructor lazily
           // builds Widgets as they’re scrolled into view.
           body: Builder(builder: (BuildContext context) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (this.controller.serverAddress == null) {
+              return Center(child: Text('Server not set, change in settings'));
+            } else if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: Text('Fetching items...'));
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -127,5 +95,42 @@ class SampleItemListView extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<SampleItem> parseItems(String responseBody) {
+    final parsed = (jsonDecode(responseBody)['items'] as List)
+        .cast<Map<String, dynamic>>();
+
+    return parsed.map<SampleItem>((json) => SampleItem.fromJson(json)).toList();
+  }
+
+  Future<List<SampleItem>> fetchItems() async {
+    // Store username and password in encrypted settings
+    AndroidOptions getAndroidOptions() => const AndroidOptions(
+          encryptedSharedPreferences: true,
+        );
+    final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
+
+    final String server = this.controller.serverAddress!;
+    final String? user = await storage.read(key: constants.storeUsernameKey);
+    final String? password =
+        await storage.read(key: constants.storePasswordKey);
+    String basicAuth = base64.encode(utf8.encode('$user:$password'));
+
+    try {
+      final response = await get(
+          Uri.parse('$server/apps/athenaeum/api/0.1/items'),
+          headers: <String, String>{'authorization': 'Basic $basicAuth'});
+      if (response.statusCode != 200) {
+        throw HttpException('${response.statusCode}');
+      }
+      return parseItems(response.body);
+    } on SocketException {
+      return Future.error("No Internet connection");
+    } on HttpException catch (e) {
+      return Future.error("Failed to fetch items (${e.message})");
+    } on FormatException {
+      return Future.error("Bad response format");
+    }
   }
 }
