@@ -25,8 +25,8 @@ class SampleItemListView extends StatelessWidget {
     final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
 
     final String server = "http://10.0.2.2:8081";
-    final String? user = await storage.read(key: "athnm-nc-user");
-    final String? password = await storage.read(key: "athnm-nc-password");
+    final String? user = await storage.read(key: "nc-user");
+    final String? password = await storage.read(key: "nc-password");
     String basicAuth = base64.encode(utf8.encode('$user:$password'));
     final response = await get(
         Uri.parse('$server/apps/athenaeum/api/0.1/items'),
